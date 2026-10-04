@@ -15,7 +15,7 @@ Assistente desktop de análise técnica multi-timeframe criado para trabalhar **
 
 ## Versão atual
 
-### v0.4
+### v0.5 — IQ Auto Connect
 - Dashboard desktop escuro.
 - Seleção visual independente de M5, M15 e M1.
 - Preview com **overlay de calibração**, mostrando quais candles o robô reconheceu.
@@ -114,3 +114,21 @@ Em seguida, execute CRIAR_ATALHO.bat para criar **DS VISION PRO** na Área de Tr
 
 Se o Windows bloquear os arquivos .bat baixados, os mesmos comandos podem ser executados manualmente no PowerShell. Para este computador, o comando correto é `python`, não `py`.
 \n## Correção v0.4: configuração do aplicativo\n\nO executável não depende mais de `config/default.json` dentro da pasta do PyInstaller. As configurações e o histórico são gravados em `%LOCALAPPDATA%\\DS VISION PRO`, permitindo abrir o aplicativo pelo EXE/atalho sem erro de arquivo ausente.\n
+
+## IQ Auto Connect v0.5
+
+O DS VISION PRO agora procura automaticamente o processo `IQ Option.exe` no Windows. Se a plataforma não estiver aberta e a instalação for encontrada em um dos caminhos conhecidos, o DS pode iniciá-la.
+
+Na primeira utilização:
+1. Abra o DS VISION PRO.
+2. Aguarde o status **IQ OPTION CONECTADA**.
+3. Use os botões M5/M15/M1 para calibrar somente as áreas dos gráficos.
+4. A calibração é convertida para coordenadas relativas à janela da IQ Option e salva em `%LOCALAPPDATA%\DS VISION PRO\config.json`.
+
+Nas próximas utilizações:
+- a IQ Option é detectada novamente mesmo com PID diferente;
+- o DS recalcula as regiões se a janela mudar de tamanho ou posição;
+- M5/M15 calibrados podem iniciar a leitura automaticamente;
+- a captura tenta ler diretamente a janela via Windows e usa captura de tela como fallback.
+
+A integração é somente de leitura: não solicita credenciais e não envia ordens.
