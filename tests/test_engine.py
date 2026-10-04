@@ -2,6 +2,7 @@ from dsvision.models import Candle
 from dsvision.patterns import detect_patterns
 from dsvision.structure import detect_structure
 from dsvision.confluence import analyze_timeframe, combine_timeframes
+from dsvision.timing import seconds_until_next_minute, countdown_text
 
 
 def c(o, h, l, cl, x=0):
@@ -17,6 +18,16 @@ def test_bullish_engulfing_is_detected():
     patterns = detect_patterns(candles, 2, trend_period=2)
     names = {p.name for p in patterns}
     assert "ENGOLFO DE ALTA" in names
+
+
+def test_tweezer_bottom_is_detected():
+    candles = [
+        c(11, 11.5, 9.5, 10.5, 1),
+        c(10.5, 10.8, 8.0, 8.6, 2),
+        c(8.5, 10.0, 8.05, 9.7, 3),
+    ]
+    names = {p.name for p in detect_patterns(candles, 2, trend_period=2)}
+    assert "TWEEZER BOTTOM" in names
 
 
 def test_structure_returns_list():
@@ -46,3 +57,9 @@ def test_combiner_blocks_m5_m15_conflict():
 
     if m5.direction != "AGUARDAR" and m15.direction != "AGUARDAR" and m5.direction != m15.direction:
         assert combined.direction == "AGUARDAR"
+
+
+def test_countdown_helper():
+    assert seconds_until_next_minute(120.0) == 60.0
+    assert seconds_until_next_minute(125.5) == 54.5
+    assert countdown_text(125.5) == "00:54"
