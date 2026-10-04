@@ -4,6 +4,7 @@ from dsvision.structure import detect_structure
 from dsvision.confluence import analyze_timeframe, combine_timeframes
 from dsvision.timing import seconds_until_next_minute, countdown_text
 from dsvision.storage import DEFAULT_CONFIG
+from dsvision.iqoption_bridge import absolute_region, relative_region
 
 
 def c(o, h, l, cl, x=0):
@@ -69,3 +70,15 @@ def test_countdown_helper():
 def test_default_runtime_config_has_all_timeframes():
     assert DEFAULT_CONFIG["regions"] == {"M5": None, "M15": None, "M1": None}
     assert DEFAULT_CONFIG["expiry_seconds"] == 60
+
+
+def test_iqoption_relative_calibration_roundtrip():
+    window = (100, 50, 1300, 750)
+    region = {"left": 340, "top": 190, "width": 600, "height": 350}
+    relative = relative_region(region, window)
+    restored = absolute_region(relative, window)
+
+    assert abs(restored["left"] - region["left"]) <= 1
+    assert abs(restored["top"] - region["top"]) <= 1
+    assert abs(restored["width"] - region["width"]) <= 1
+    assert abs(restored["height"] - region["height"]) <= 1
