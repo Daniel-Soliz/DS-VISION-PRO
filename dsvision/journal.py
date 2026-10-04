@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import csv
 from datetime import datetime
-from pathlib import Path
-
 from .models import CombinedAnalysis
+from .storage import journal_path
 
-LOG_PATH = Path(__file__).resolve().parent.parent / "signals.csv"
+LOG_PATH = journal_path()
 
 
 def append_signal(result: CombinedAnalysis) -> None:
