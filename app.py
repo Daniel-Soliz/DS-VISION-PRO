@@ -10,6 +10,14 @@ from PIL import Image
 
 from dsvision.catalog import PATTERN_CATALOG
 from dsvision.confluence import analyze_timeframe, combine_timeframes
+from dsvision.iqoption_bridge import (
+    activate_iqoption,
+    capture_iqoption_window,
+    crop_relative,
+    find_iqoption_window,
+    launch_iqoption,
+    relative_region,
+)
 from dsvision.journal import append_signal, load_recent
 from dsvision.storage import load_config, save_config
 from dsvision.timing import countdown_text
@@ -95,6 +103,9 @@ class App(ctk.CTk):
         self.last_signal_key = ""
         self.preview_refs = {}
         self.voice = None
+        self.iq_window = None
+        self._iq_launch_attempted = False
+        self._auto_started = False
 
         if pyttsx3 is not None and self.cfg.get("voice_alerts", True):
             try:
@@ -105,6 +116,7 @@ class App(ctk.CTk):
 
         self._build()
         self._tick_clock()
+        self.after(400, self._poll_iqoption)
 
     def _build(self):
         self.grid_columnconfigure(1, weight=1)
@@ -116,7 +128,16 @@ class App(ctk.CTk):
 
         ctk.CTkLabel(sidebar, text="DS VISION", font=("Segoe UI", 26, "bold")).pack(pady=(28, 0))
         ctk.CTkLabel(sidebar, text="PRO", font=("Segoe UI", 17, "bold"), text_color="#8b5cf6").pack()
-        ctk.CTkLabel(sidebar, text="M5 • M15 • 60s", text_color="#9ca3af").pack(pady=(4, 22))
+        ctk.CTkLabel(sidebar, text="M5 • M15 • 60s", text_color="#9ca3af").pack(pady=(4, 10))
+
+        self.iq_status_label = ctk.CTkLabel(
+            sidebar,
+            text="● PROCURANDO IQ OPTION",
+            text_color="#f59e0b",
+            font=("Segoe UI", 12, "bold"),
+            justify="left",
+        )
+        self.iq_status_label.pack(padx=16, pady=(0, 14), anchor="w")
 
         for tf in ("M5", "M15", "M1"):
             ctk.CTkButton(
@@ -220,7 +241,12 @@ class App(ctk.CTk):
                 pady=10,
             )
             ctk.CTkLabel(card, text=tf, font=("Segoe UI", 20, "bold")).pack(pady=(14, 4))
-            state = ctk.CTkLabel(card, text="NÃO CONFIGURADO", text_color="#9ca3af")
+            saved = self.cfg.get("iq_regions", {}).get(tf) or self.cfg.get("regions", {}).get(tf)
+            state = ctk.CTkLabel(
+                card,
+                text="CALIBRAÇÃO SALVA" if saved else "NÃO CONFIGURADO",
+                text_color="#22c55e" if saved else "#9ca3af",
+            )
             state.pack()
             preview = ctk.CTkLabel(card, text="")
             preview.pack(fill="x", padx=10, pady=10)
@@ -241,24 +267,111 @@ class App(ctk.CTk):
         self.clock_label.configure(text=f"PRÓXIMO MINUTO {countdown_text()}")
         self.after(250, self._tick_clock)
 
+    def _poll_iqoption(self):
+        try:
+            window = find_iqoption_window()
+        except Exception:
+            window = None
+
+        if window is not None:
+            self.iq_window = window
+            calibrated = any(
+                self.cfg.get("iq_regions", {}).get(tf)
+                for tf in ("M5", "M15", "M1")
+            )
+            status_text = "● IQ OPTION CONECTADA"
+            if calibrated:
+                status_text += "\n  calibração carregada"
+            self.iq_status_label.configure(
+                text=status_text,
+                text_color="#22c55e",
+            )
+
+            can_auto_start = (
+                self.cfg.get("iq_auto_start", True)
+                and not self.running
+                and not self._auto_started
+                and (
+                    self.cfg.get("iq_regions", {}).get("M5")
+                    or self.cfg.get("iq_regions", {}).get("M15")
+                )
+            )
+            if can_auto_start:
+                self._auto_started = True
+                self.running = True
+                self.start_button.configure(
+                    text="PARAR LEITURA",
+                    fg_color="#dc2626",
+                    hover_color="#b91c1c",
+                )
+                self.status.configure(text="● LEITURA ATIVA", text_color="#22c55e")
+                self._loop()
+        else:
+            self.iq_window = None
+            if self.cfg.get("iq_auto_launch", True) and not self._iq_launch_attempted:
+                self._iq_launch_attempted = True
+                launched = launch_iqoption()
+                if launched:
+                    self.iq_status_label.configure(
+                        text="● ABRINDO IQ OPTION...",
+                        text_color="#38bdf8",
+                    )
+                else:
+                    self.iq_status_label.configure(
+                        text="● IQ OPTION NÃO ENCONTRADA",
+                        text_color="#f59e0b",
+                    )
+            else:
+                self.iq_status_label.configure(
+                    text="● AGUARDANDO IQ OPTION",
+                    text_color="#f59e0b",
+                )
+
+        self.after(1500, self._poll_iqoption)
+
     def select_region(self, timeframe: str):
         self.running = False
         self.start_button.configure(text="INICIAR LEITURA", fg_color="#16a34a", hover_color="#15803d")
         self.status.configure(text="● PARADO", text_color="#f59e0b")
+        if self.iq_window is not None:
+            activate_iqoption(self.iq_window)
         self.withdraw()
-        self.after(250, lambda: RegionSelector(self, timeframe, self._region_selected))
+        self.after(450, lambda: RegionSelector(self, timeframe, self._region_selected))
 
     def _region_selected(self, timeframe: str, region: dict):
         self.deiconify()
         self.lift()
         self.cfg["regions"][timeframe] = region
+
+        window = find_iqoption_window()
+        if window is not None:
+            self.iq_window = window
+            self.cfg.setdefault("iq_regions", {})[timeframe] = relative_region(
+                region,
+                window.rect,
+            )
+            state_text = "CALIBRADO • IQ OPTION"
+        else:
+            state_text = "CONFIGURADO"
+
         save_config(self.cfg)
-        self.cards[timeframe]["state"].configure(text="CONFIGURADO", text_color="#22c55e")
+        self.cards[timeframe]["state"].configure(
+            text=state_text,
+            text_color="#22c55e",
+        )
         self.scan_once()
 
     def toggle(self):
-        if not self.cfg["regions"].get("M5") and not self.cfg["regions"].get("M15"):
-            messagebox.showinfo("DS VISION PRO", "Selecione pelo menos M5 ou M15.")
+        has_m5 = (
+            self.cfg.get("iq_regions", {}).get("M5")
+            or self.cfg.get("regions", {}).get("M5")
+        )
+        has_m15 = (
+            self.cfg.get("iq_regions", {}).get("M15")
+            or self.cfg.get("regions", {}).get("M15")
+        )
+        if not has_m5 and not has_m15:
+            messagebox.showinfo("DS VISION PRO", "Calibre pelo menos M5 ou M15.")
             return
         self.running = not self.running
         if self.running:
@@ -277,14 +390,40 @@ class App(ctk.CTk):
 
     def scan_once(self):
         analyses = {}
+        iq_frame = None
+
+        relative_regions = self.cfg.get("iq_regions", {})
+        has_relative = any(relative_regions.get(tf) for tf in ("M5", "M15", "M1"))
+
+        if has_relative:
+            window = find_iqoption_window()
+            if window is not None:
+                self.iq_window = window
+                try:
+                    iq_frame = capture_iqoption_window(window)
+                except Exception as exc:
+                    self.iq_status_label.configure(
+                        text=f"● ERRO NA CAPTURA IQ OPTION\n  {exc}",
+                        text_color="#ef4444",
+                    )
+            else:
+                self.iq_status_label.configure(
+                    text="● IQ OPTION DESCONECTADA",
+                    text_color="#ef4444",
+                )
 
         for tf in ("M5", "M15", "M1"):
-            region = self.cfg["regions"].get(tf)
-            if not region:
+            relative = relative_regions.get(tf)
+            legacy_region = self.cfg.get("regions", {}).get(tf)
+
+            if relative and iq_frame is not None:
+                frame = crop_relative(iq_frame, relative)
+            elif legacy_region:
+                frame = capture_region(legacy_region)
+            else:
                 continue
 
             try:
-                frame = capture_region(region)
                 candles = detect_candles(frame)
 
                 if len(candles) < int(self.cfg.get("min_candles", 14)):
