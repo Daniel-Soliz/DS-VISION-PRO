@@ -1,0 +1,48 @@
+from dsvision.models import Candle
+from dsvision.patterns import detect_patterns
+from dsvision.structure import detect_structure
+from dsvision.confluence import analyze_timeframe, combine_timeframes
+
+
+def c(o, h, l, cl, x=0):
+    return Candle(x=x, open=o, high=h, low=l, close=cl, color="green" if cl > o else "red")
+
+
+def test_bullish_engulfing_is_detected():
+    candles = [
+        c(10, 11, 8, 9, 1),
+        c(9.5, 10, 8, 8.5, 2),
+        c(8.4, 10.2, 8.2, 10.0, 3),
+    ]
+    patterns = detect_patterns(candles, 2, trend_period=2)
+    names = {p.name for p in patterns}
+    assert "ENGOLFO DE ALTA" in names
+
+
+def test_structure_returns_list():
+    candles = [c(10+i*0.1, 11+i*0.1, 9+i*0.1, 10.5+i*0.1, i) for i in range(15)]
+    result = detect_structure(candles, 14, sr_period=10, lt_period=8)
+    assert isinstance(result, list)
+
+
+def test_combiner_blocks_m5_m15_conflict():
+    cfg = {
+        "ignore_rightmost": 1,
+        "trend_period": 3,
+        "sr_period": 5,
+        "lt_period": 5,
+        "doji_percent": 12,
+        "touch_tolerance_percent": 30,
+        "signal_threshold": 1,
+        "strong_threshold": 5,
+    }
+
+    up = [c(10+i, 11+i, 9+i, 10.8+i, i) for i in range(12)]
+    down = [c(30-i, 31-i, 28-i, 29-i, i) for i in range(12)]
+
+    m5 = analyze_timeframe(up, "M5", cfg)
+    m15 = analyze_timeframe(down, "M15", cfg)
+    combined = combine_timeframes({"M5": m5, "M15": m15})
+
+    if m5.direction != "AGUARDAR" and m15.direction != "AGUARDAR" and m5.direction != m15.direction:
+        assert combined.direction == "AGUARDAR"

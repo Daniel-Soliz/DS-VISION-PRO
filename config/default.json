@@ -1,0 +1,19 @@
+{
+  "scan_ms": 1000,
+  "expiry_seconds": 60,
+  "min_candles": 14,
+  "ignore_rightmost": 1,
+  "trend_period": 10,
+  "sr_period": 30,
+  "lt_period": 20,
+  "doji_percent": 12,
+  "touch_tolerance_percent": 30,
+  "signal_threshold": 4,
+  "strong_threshold": 8,
+  "voice_alerts": true,
+  "regions": {
+    "M5": null,
+    "M15": null,
+    "M1": null
+  }
+}
