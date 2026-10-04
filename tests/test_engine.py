@@ -3,6 +3,7 @@ from dsvision.patterns import detect_patterns
 from dsvision.structure import detect_structure
 from dsvision.confluence import analyze_timeframe, combine_timeframes
 from dsvision.timing import seconds_until_next_minute, countdown_text
+from dsvision.storage import DEFAULT_CONFIG
 
 
 def c(o, h, l, cl, x=0):
