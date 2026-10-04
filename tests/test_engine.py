@@ -3,6 +3,7 @@ from dsvision.patterns import detect_patterns
 from dsvision.structure import detect_structure
 from dsvision.confluence import analyze_timeframe, combine_timeframes
 from dsvision.timing import seconds_until_next_minute, countdown_text
+from dsvision.storage import DEFAULT_CONFIG
 
 
 def c(o, h, l, cl, x=0):
@@ -63,3 +64,8 @@ def test_countdown_helper():
     assert seconds_until_next_minute(120.0) == 60.0
     assert seconds_until_next_minute(125.5) == 54.5
     assert countdown_text(125.5) == "00:54"
+
+
+def test_default_runtime_config_has_all_timeframes():
+    assert DEFAULT_CONFIG["regions"] == {"M5": None, "M15": None, "M1": None}
+    assert DEFAULT_CONFIG["expiry_seconds"] == 60
