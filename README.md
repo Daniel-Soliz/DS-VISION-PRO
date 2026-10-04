@@ -13,13 +13,27 @@ Assistente desktop de análise técnica multi-timeframe criado para trabalhar **
 - Sem execução automática de ordens nesta versão
 - Sem solicitar login/senha da corretora
 
+## Versão atual
+
+### v0.2
+- Dashboard desktop escuro.
+- Seleção visual independente de M5, M15 e M1.
+- Preview com **overlay de calibração**, mostrando quais candles o robô reconheceu.
+- Relógio para o próximo minuto como apoio visual de timing.
+- Catálogo interno de padrões.
+- Histórico de sinais.
+- Alerta por voz.
+- Journal CSV.
+- Motor de confluência M5/M15/M1.
+- Bloqueio de entrada quando M5 e M15 entram em conflito.
+
 ## O que o motor analisa
 
 ### Candlesticks
-Doji, Dragonfly Doji, Gravestone Doji, Spinning Top, Martelo, Martelo Invertido, Homem Enforcado, Estrela Cadente, Engolfo de Alta/Baixa, Harami de Alta/Baixa, Piercing Line, Dark Cloud Cover, Morning Star, Evening Star, Três Soldados Brancos, Três Corvos Negros e Marubozu.
+Doji, Dragonfly Doji, Gravestone Doji, Spinning Top, Martelo, Martelo Invertido, Homem Enforcado, Estrela Cadente, Engolfo de Alta/Baixa, Harami de Alta/Baixa, Piercing Line, Dark Cloud Cover, Morning Star, Evening Star, Três Soldados Brancos, Três Corvos Negros, Marubozu, Tweezer Top/Bottom, Bullish/Bearish Kicker, Three Inside Up/Down e Three Outside Up/Down.
 
 ### Estrutura
-Suporte, resistência, pivôs, rompimento, falso rompimento/rejeição, pullback, LTA, LTB, tendência curta, momentum e volatilidade.
+Suporte, resistência, pivôs, rompimento, falso rompimento/rejeição, pullback, LTA, LTB, tendência curta, momentum e proximidade de zonas contrárias.
 
 ### Confluência profissional
 O DS VISION PRO não transforma um único padrão em entrada. Cada leitura soma e subtrai pontos. Se M5/M15 conflitarem ou a vantagem for pequena, o resultado é **AGUARDAR**.
@@ -32,10 +46,12 @@ O número de força exibido é **score técnico de confluência**, não probabil
 2. Execute `INSTALL.bat`.
 3. Execute `RUN.bat`.
 4. Abra a IQ Option no PC.
-5. Deixe um gráfico M5 e/ou M15 visível.
-6. No DS VISION PRO, selecione a região do gráfico correspondente.
-7. Opcionalmente selecione um gráfico M1 para melhorar o timing de 60 segundos.
-8. Clique em **INICIAR LEITURA**.
+5. Deixe os gráficos que deseja analisar visíveis.
+6. No DS VISION PRO, selecione a região M5.
+7. Selecione a região M15.
+8. Opcionalmente selecione M1 para melhorar o timing de 60 segundos.
+9. Confira no preview se os retângulos de calibração estão cobrindo corretamente as velas.
+10. Clique em **INICIAR LEITURA**.
 
 Selecione somente a área de velas. Evite menus, lista de ativos, botões, textos e eixo de preço.
 
@@ -48,16 +64,29 @@ Execute `BUILD_EXE.bat`. O EXE será criado em `dist/DS_VISION_PRO.exe`.
 ```text
 app.py
 dsvision/
-  models.py
-  vision.py
-  patterns.py
-  structure.py
+  catalog.py
   confluence.py
   journal.py
+  models.py
+  patterns.py
+  structure.py
+  timing.py
+  vision.py
 config/default.json
 docs/PATTERNS.md
 tests/test_engine.py
 ```
+
+## Roadmap
+
+- Calibrar o reconhecimento para capturas reais da IQ Option.
+- Adicionar resultados WIN/LOSS ao journal e medir desempenho real por padrão.
+- Ranking de padrões por ativo e timeframe.
+- Zonas de suporte/resistência por múltiplos toques.
+- Detector de consolidação e mercado lateral.
+- Filtro de volatilidade.
+- Painel de estatísticas e taxa histórica de acerto do próprio DS.
+- Empacotamento final e instalador Windows.
 
 ## Limites importantes
 

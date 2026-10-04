@@ -30,3 +30,13 @@ def append_signal(result: CombinedAnalysis) -> None:
             result.bear_score,
             " | ".join(result.reasons),
         ])
+
+
+def load_recent(limit: int = 100) -> list[dict[str, str]]:
+    if not LOG_PATH.exists():
+        return []
+
+    with LOG_PATH.open("r", newline="", encoding="utf-8") as handle:
+        rows = list(csv.DictReader(handle, delimiter=";"))
+
+    return rows[-max(1, int(limit)):][::-1]
