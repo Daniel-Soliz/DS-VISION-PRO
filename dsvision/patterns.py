@@ -11,6 +11,10 @@ def _sma(values: list[float], period: int) -> float | None:
     return float(np.mean(values[-period:]))
 
 
+def _near(a: float, b: float, tolerance: float) -> bool:
+    return abs(a - b) <= max(1e-9, tolerance)
+
+
 def detect_patterns(
     candles: list[Candle],
     idx: int,
@@ -157,5 +161,84 @@ def detect_patterns(
         out.append(PatternSignal("MARUBOZU DE ALTA", "ALTA", 2, "pressão compradora"))
     if c1.bear and c1.body >= c1.range * 0.85:
         out.append(PatternSignal("MARUBOZU DE BAIXA", "BAIXA", 2, "pressão vendedora"))
+
+    # Padrões clássicos adicionais. A tolerância usa o range médio das duas velas
+    # para não depender de valores absolutos do ativo.
+    avg_two_range = (c1.range + c2.range) / 2
+    tweezer_tolerance = avg_two_range * 0.12
+
+    tweezer_bottom = (
+        c2.bear and c1.bull
+        and _near(c1.low, c2.low, tweezer_tolerance)
+        and c1.close > c1.open
+    )
+    tweezer_top = (
+        c2.bull and c1.bear
+        and _near(c1.high, c2.high, tweezer_tolerance)
+        and c1.close < c1.open
+    )
+    if tweezer_bottom:
+        out.append(PatternSignal("TWEEZER BOTTOM", "ALTA", 2, "dupla rejeição de fundo"))
+    if tweezer_top:
+        out.append(PatternSignal("TWEEZER TOP", "BAIXA", 2, "dupla rejeição de topo"))
+
+    bullish_kicker = (
+        c2.bear and c1.bull
+        and c1.open >= c2.open
+        and c1.close > c2.open
+        and c1.body >= c1.range * 0.60
+    )
+    bearish_kicker = (
+        c2.bull and c1.bear
+        and c1.open <= c2.open
+        and c1.close < c2.open
+        and c1.body >= c1.range * 0.60
+    )
+    if bullish_kicker:
+        out.append(PatternSignal("BULLISH KICKER", "ALTA", 3, "mudança brusca de domínio"))
+    if bearish_kicker:
+        out.append(PatternSignal("BEARISH KICKER", "BAIXA", 3, "mudança brusca de domínio"))
+
+    three_inside_up = (
+        c3.bear
+        and c2.bull
+        and c2.open > c3.close
+        and c2.close < c3.open
+        and c1.bull
+        and c1.close > c3.open
+    )
+    three_inside_down = (
+        c3.bull
+        and c2.bear
+        and c2.open < c3.close
+        and c2.close > c3.open
+        and c1.bear
+        and c1.close < c3.open
+    )
+    if three_inside_up:
+        out.append(PatternSignal("THREE INSIDE UP", "ALTA", 3, "harami confirmado"))
+    if three_inside_down:
+        out.append(PatternSignal("THREE INSIDE DOWN", "BAIXA", 3, "harami confirmado"))
+
+    three_outside_up = (
+        c3.bear
+        and c2.bull
+        and c2.open <= c3.close
+        and c2.close >= c3.open
+        and c1.bull
+        and c1.close > c2.close
+    )
+    three_outside_down = (
+        c3.bull
+        and c2.bear
+        and c2.open >= c3.close
+        and c2.close <= c3.open
+        and c1.bear
+        and c1.close < c2.close
+    )
+    if three_outside_up:
+        out.append(PatternSignal("THREE OUTSIDE UP", "ALTA", 3, "engolfo confirmado"))
+    if three_outside_down:
+        out.append(PatternSignal("THREE OUTSIDE DOWN", "BAIXA", 3, "engolfo confirmado"))
 
     return out
