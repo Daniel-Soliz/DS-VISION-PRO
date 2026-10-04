@@ -57,7 +57,19 @@ Selecione somente a área de velas. Evite menus, lista de ativos, botões, texto
 
 ## Gerar executável
 
-Execute `BUILD_EXE.bat`. O EXE será criado em `dist/DS_VISION_PRO.exe`.
+Execute `BUILD_EXE.bat`. A versão local será criada em:
+
+`dist/DS_VISION_PRO/DS_VISION_PRO.exe`
+
+### Windows Smart App Control / SmartScreen
+
+O build do GitHub ainda é um aplicativo **não assinado digitalmente**. Por isso o Windows pode bloquear o EXE baixado da internet mesmo quando o código foi gerado pelo próprio repositório.
+
+Para os testes iniciais, a opção recomendada é **gerar o aplicativo localmente com `BUILD_EXE.bat`**, em vez de desligar o Smart App Control.
+
+O workflow do GitHub também publica um arquivo `SHA256SUM.txt` junto do build para conferência de integridade.
+
+Para distribuição pública sem esse tipo de alerta, a etapa correta é assinar o executável com um certificado de assinatura de código confiável.
 
 ## Estrutura
 
