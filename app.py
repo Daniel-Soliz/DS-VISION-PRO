@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import json
 import threading
-from pathlib import Path
 import tkinter as tk
 from tkinter import messagebox
 
@@ -13,6 +11,7 @@ from PIL import Image
 from dsvision.catalog import PATTERN_CATALOG
 from dsvision.confluence import analyze_timeframe, combine_timeframes
 from dsvision.journal import append_signal, load_recent
+from dsvision.storage import load_config, save_config
 from dsvision.timing import countdown_text
 from dsvision.vision import capture_region, detect_candles
 
@@ -20,18 +19,6 @@ try:
     import pyttsx3
 except Exception:
     pyttsx3 = None
-
-
-ROOT = Path(__file__).resolve().parent
-CONFIG_PATH = ROOT / "config" / "default.json"
-
-
-def load_config() -> dict:
-    return json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
-
-
-def save_config(cfg: dict) -> None:
-    CONFIG_PATH.write_text(json.dumps(cfg, indent=2), encoding="utf-8")
 
 
 class RegionSelector(tk.Toplevel):
