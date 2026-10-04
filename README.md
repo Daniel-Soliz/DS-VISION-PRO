@@ -103,3 +103,13 @@ tests/test_engine.py
 ## Limites importantes
 
 Leitura por tela é sensível a zoom, tema, sobreposição de textos e mudanças visuais da plataforma. A validação em conta de demonstração e o journal de resultados fazem parte do projeto. Não existe previsão perfeita da próxima vela.
+
+## Usar como aplicativo com dois cliques
+
+Depois de instalar as dependências, gere o aplicativo localmente com BUILD_EXE.bat. O executável ficará em:
+
+`dist/DS_VISION_PRO/DS_VISION_PRO.exe`
+
+Em seguida, execute CRIAR_ATALHO.bat para criar **DS VISION PRO** na Área de Trabalho. Depois disso, basta abrir pelo atalho como qualquer outro aplicativo do Windows.
+
+Se o Windows bloquear os arquivos .bat baixados, os mesmos comandos podem ser executados manualmente no PowerShell. Para este computador, o comando correto é `python`, não `py`.
