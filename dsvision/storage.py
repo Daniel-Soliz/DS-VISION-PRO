@@ -18,7 +18,14 @@ DEFAULT_CONFIG = {
     "signal_threshold": 4,
     "strong_threshold": 8,
     "voice_alerts": True,
+    "iq_auto_launch": True,
+    "iq_auto_start": True,
     "regions": {
+        "M5": None,
+        "M15": None,
+        "M1": None,
+    },
+    "iq_regions": {
         "M5": None,
         "M15": None,
         "M1": None,
@@ -51,9 +58,15 @@ def load_config() -> dict:
     if path.exists():
         try:
             loaded = json.loads(path.read_text(encoding="utf-8"))
-            config.update({k: v for k, v in loaded.items() if k != "regions"})
+            config.update({
+                k: v
+                for k, v in loaded.items()
+                if k not in ("regions", "iq_regions")
+            })
             if isinstance(loaded.get("regions"), dict):
                 config["regions"].update(loaded["regions"])
+            if isinstance(loaded.get("iq_regions"), dict):
+                config["iq_regions"].update(loaded["iq_regions"])
         except Exception:
             pass
 
