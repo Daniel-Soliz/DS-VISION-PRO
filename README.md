@@ -15,7 +15,7 @@ Assistente desktop de análise técnica multi-timeframe criado para trabalhar **
 
 ## Versão atual
 
-### v0.2
+### v0.4
 - Dashboard desktop escuro.
 - Seleção visual independente de M5, M15 e M1.
 - Preview com **overlay de calibração**, mostrando quais candles o robô reconheceu.
@@ -113,3 +113,4 @@ Depois de instalar as dependências, gere o aplicativo localmente com BUILD_EXE.
 Em seguida, execute CRIAR_ATALHO.bat para criar **DS VISION PRO** na Área de Trabalho. Depois disso, basta abrir pelo atalho como qualquer outro aplicativo do Windows.
 
 Se o Windows bloquear os arquivos .bat baixados, os mesmos comandos podem ser executados manualmente no PowerShell. Para este computador, o comando correto é `python`, não `py`.
+\n## Correção v0.4: configuração do aplicativo\n\nO executável não depende mais de `config/default.json` dentro da pasta do PyInstaller. As configurações e o histórico são gravados em `%LOCALAPPDATA%\\DS VISION PRO`, permitindo abrir o aplicativo pelo EXE/atalho sem erro de arquivo ausente.\n
